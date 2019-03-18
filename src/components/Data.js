@@ -54,8 +54,8 @@ class Data extends Component {
         const cards = Object.keys(snapshot.val()).map(key => {
           return {
             key: key,
-            cardName: myCardFromDatabase[key].cardName.title,
-            listKey: myCardFromDatabase[key].listKey.key
+            cardName: myCardFromDatabase[key].cardName,
+            listKey: myCardFromDatabase[key].listKey
           };
         });
         this.setState({
@@ -94,6 +94,10 @@ class Data extends Component {
   };
 
   _saveCard = (key, title, index, e) => {
+    // console.log("key from card");
+    // console.log(key.key);
+    // console.log("title from card:");
+    // console.log(title.title);
     if (this.state.cardName === "") {
       alert("Card cannot be empty");
     } else {
@@ -101,15 +105,17 @@ class Data extends Component {
         .database()
         .ref("cards/")
         .push().key;
+
       firebase
         .database()
         .ref("cards/")
         .update({
           [newCardKey]: {
-            listKey: key,
-            cardName: title
+            listKey: key.key,
+            cardName: title.title
           }
         });
+
       this.setState({
         cardName: ""
       });
@@ -165,6 +171,31 @@ class Data extends Component {
     }
   };
 
+  _handleMoveCard = (keyOfCard, moveByIndex) => {
+    const { dataCards, dataLists } = this.state;
+    const moveToAnotherList = dataLists[moveByIndex].key;
+    // console.log(moveToAnotherList);
+    let newKeyOfCard;
+    for (let i = 0; i < dataCards.length; i++) {
+      if (keyOfCard === dataCards[i].key) {
+        newKeyOfCard = i;
+      }
+    }
+
+    const newCard = dataCards[newKeyOfCard];
+    // console.log(newCard);
+
+    firebase
+      .database()
+      .ref("cards/")
+      .update({
+        [newCard.key]: {
+          listKey: moveToAnotherList,
+          cardName: newCard.cardName
+        }
+      });
+  };
+
   render() {
     return (
       <div>
@@ -186,9 +217,9 @@ class Data extends Component {
                         close
                       />
                     </CardHeader>
-                    {cards.map((card, index) => {
+                    {cards.map((card, indexTask) => {
                       return (
-                        <CardBody key={index}>
+                        <CardBody key={indexTask}>
                           <div>
                             <CardText>
                               {card.cardName}
@@ -199,6 +230,28 @@ class Data extends Component {
                                 close
                               />
                             </CardText>
+                            {index >= 1 ? (
+                              <Button
+                                onClick={() => {
+                                  this._handleMoveCard(card.key, index - 1);
+                                }}
+                              >
+                                Left
+                              </Button>
+                            ) : (
+                              <Button disabled>Left</Button>
+                            )}
+                            {index < this.state.dataLists.length - 1 ? (
+                              <Button
+                                onClick={() => {
+                                  this._handleMoveCard(card.key, index + 1);
+                                }}
+                              >
+                                Right
+                              </Button>
+                            ) : (
+                              <Button disabled>Right</Button>
+                            )}
                           </div>
                         </CardBody>
                       );
