@@ -23,6 +23,7 @@ class Data extends Component {
       editCardName: "",
       keyCard: "",
       keyList: "",
+      inputKey: "",
       dataLists: [],
       dataCards: [],
       editing: false
@@ -86,6 +87,7 @@ class Data extends Component {
         .database()
         .ref("lists/")
         .push().key;
+
       firebase
         .database()
         .ref("lists/")
@@ -207,7 +209,7 @@ class Data extends Component {
   };
 
   _handleChooseCard = key => {
-    console.log(key);
+    // console.log(key);
     const { dataCards } = this.state;
     // console.log(dataCards);
     let indexOfCard;
@@ -234,7 +236,7 @@ class Data extends Component {
     // console.log(keyCard);
 
     if (editCardName !== "") {
-      console.log("You can edit");
+      // console.log("You can edit");
 
       firebase
         .database()
@@ -246,7 +248,7 @@ class Data extends Component {
           }
         });
     } else {
-      console.log("You can't edit");
+      // console.log("You can't edit");
       alert("Card cannot be empty");
     }
   };
