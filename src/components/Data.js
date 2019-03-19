@@ -8,7 +8,10 @@ import {
   Button,
   CardBody,
   CardText,
-  CardFooter
+  CardFooter,
+  Modal,
+  ModalBody,
+  ModalFooter
 } from "reactstrap";
 
 class Data extends Component {
@@ -17,8 +20,12 @@ class Data extends Component {
     this.state = {
       listName: "",
       cardName: "",
+      editCardName: "",
+      keyCard: "",
+      keyList: "",
       dataLists: [],
-      dataCards: []
+      dataCards: [],
+      editing: false
     };
   }
 
@@ -173,6 +180,8 @@ class Data extends Component {
 
   _handleMoveCard = (keyOfCard, moveByIndex) => {
     const { dataCards, dataLists } = this.state;
+    // Get key from List destination movement
+    // console.log(keyOfCard);
     const moveToAnotherList = dataLists[moveByIndex].key;
     // console.log(moveToAnotherList);
     let newKeyOfCard;
@@ -182,6 +191,7 @@ class Data extends Component {
       }
     }
 
+    // console.log(newKeyOfCard);
     const newCard = dataCards[newKeyOfCard];
     // console.log(newCard);
 
@@ -194,6 +204,57 @@ class Data extends Component {
           cardName: newCard.cardName
         }
       });
+  };
+
+  _handleChooseCard = key => {
+    console.log(key);
+    const { dataCards } = this.state;
+    // console.log(dataCards);
+    let indexOfCard;
+    for (let i = 0; i < dataCards.length; i++) {
+      if (key === dataCards[i].key) {
+        // console.log(dataCards[i].cardName);
+        indexOfCard = i;
+      }
+    }
+
+    const editCard = dataCards[indexOfCard];
+    // console.log(editCard.cardName);
+
+    this.setState({
+      editCardName: editCard.cardName,
+      keyCard: key,
+      keyList: editCard.listKey
+    });
+  };
+
+  _handleEdit = () => {
+    const { editCardName, keyCard, keyList } = this.state;
+    // console.log(editCardName);
+    // console.log(keyCard);
+
+    if (editCardName !== "") {
+      console.log("You can edit");
+
+      firebase
+        .database()
+        .ref("cards/")
+        .update({
+          [keyCard]: {
+            cardName: editCardName,
+            listKey: keyList
+          }
+        });
+    } else {
+      console.log("You can't edit");
+      alert("Card cannot be empty");
+    }
+  };
+
+  toggle = e => {
+    this.setState(prevState => ({
+      editing: !prevState.editing
+    }));
   };
 
   render() {
@@ -241,6 +302,41 @@ class Data extends Component {
                             ) : (
                               <Button disabled>Left</Button>
                             )}
+                            <Button
+                              onClick={() => {
+                                this._handleChooseCard(card.key);
+                                this.toggle();
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Modal
+                              isOpen={this.state.editing}
+                              toggle={this.toggle}
+                              className={this.props.className}
+                            >
+                              <ModalBody>
+                                <input
+                                  type="text"
+                                  name="editCardName"
+                                  value={this.state.editCardName}
+                                  onChange={this._handleChange}
+                                />
+                              </ModalBody>
+                              <ModalFooter>
+                                <Button
+                                  onClick={() => {
+                                    this._handleEdit();
+                                    this.toggle();
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                                <Button color="secondary" onClick={this.toggle}>
+                                  Cancel
+                                </Button>
+                              </ModalFooter>
+                            </Modal>
                             {index < this.state.dataLists.length - 1 ? (
                               <Button
                                 onClick={() => {
